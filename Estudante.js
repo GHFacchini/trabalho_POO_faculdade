@@ -1,12 +1,16 @@
 import { Cliente } from './Cliente.js';
 
 export class Estudante extends Cliente {
-    #tarifaFixa; // Atributo privado específico do estudante
+    #saldo;
+    #tarifaDiaria;
 
-    constructor(id, nome, tarifaFixa = 15.00) {
+    constructor(id, nome, saldoInicial = 0.0) {
         super(id, nome);
-        this.#tarifaFixa = tarifaFixa;
+        this.#saldo = parseFloat(saldoInicial);
+        this.#tarifaDiaria = 15.00; // Valor fixo por "ingresso" no dia
     }
+
+    get saldo() { return this.#saldo; }
 
     adicionarPlaca(placa) {
         if (this.placas.length >= 1) {
@@ -15,9 +19,17 @@ export class Estudante extends Cliente {
         super.adicionarPlaca(placa);
     }
 
-    calcularTarifa(tempoDePermanencia) {
-        // A lógica complexa de virada de meia-noite ficará no controlador, 
-        // mas a base de cálculo da subclasse retorna a sua tarifa fixa.
-        return this.#tarifaFixa;
+    adicionarCreditos(valor) {
+        this.#saldo += valor;
+    }
+
+    // Polimorfismo: Calcula débito baseado nos dias e subtrai do saldo. Retorna o que faltar pagar na hora (0).
+    calcularTarifa(quantidadeDias, horasPermanencia) {
+        const valorDebitado = quantidadeDias * this.#tarifaDiaria;
+        this.#saldo -= valorDebitado;
+        
+        // Na saída física o estudante não paga dinheiro, ele só acerta no saldo.
+        // Se o saldo ficar negativo, ele libera, mas o RegistroDeEntradas_E_Saidas vai bloqueá-lo.
+        return 0.00; 
     }
 }

@@ -1,28 +1,47 @@
-
 import { Cliente } from './Cliente.js';
 
 export class Empresa extends Cliente {
     #saldoDevedor;
+    #inadimplente;
 
     constructor(id, nome, saldoDevedor = 0.0) {
         super(id, nome);
         this.#saldoDevedor = parseFloat(saldoDevedor);
+        this.#inadimplente = false;
     }
 
-    // Getter para o saldo
-    get saldoDevedor() {
-        return this.#saldoDevedor;
-    }
+    get saldoDevedor() { return this.#saldoDevedor; }
+    get inadimplente() { return this.#inadimplente; }
 
-    // Método para abater ou redefinir a dívida (útil para os relatórios e pagamentos)
-    quitarSaldo() {
+    // Simulação do pagamento de contas pela empresa
+    quitarDivida() {
         this.#saldoDevedor = 0.0;
+        this.#inadimplente = false;
+        console.log(`\n[FINANCEIRO] Empresa ${this.nome} quitou sua dívida e saiu da inadimplência.`);
     }
 
-    // Polimorfismo: Em vez de devolver um valor para ser pago na hora, 
-    // a empresa acumula a dívida e liberta o veículo com tarifa zero no momento da saída.
-    calcularTarifa(valorCalculado) {
-        this.#saldoDevedor += valorCalculado;
-        return 0.00; // O motorista não paga nada na cancela
+    marcarComoInadimplente() {
+        this.#inadimplente = true;
+        console.log(`\n[FINANCEIRO] Aviso: Empresa ${this.nome} marcada como Inadimplente! Frotas serão bloqueadas.`);
+    }
+
+    // Regra: Tudo pago por diária (sempre). Pernoite (quantidadeDias > 1) = multa.
+    calcularTarifa(quantidadeDias, horasPermanencia) {
+        const VALOR_DIARIA = 50.00;
+        const MULTA_PERNOITE = 20.00; // Multa por dia que pernoitou
+
+        let valorDaPermanencia = VALOR_DIARIA; // Paga 1 diária no mínimo (entrou, pagou uma diária)
+
+        if (quantidadeDias > 1) {
+            // Paga a diária dos dias adicionais + multa para cada dia a mais que dormiu lá
+            const diasExtras = quantidadeDias - 1;
+            valorDaPermanencia += (diasExtras * VALOR_DIARIA) + (diasExtras * MULTA_PERNOITE);
+        }
+
+        // Acumula a dívida
+        this.#saldoDevedor += valorDaPermanencia;
+
+        // Liberado na guarita sem pagar, pois foi pra fatura da empresa
+        return 0.00; 
     }
 }

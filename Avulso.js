@@ -1,29 +1,31 @@
 import { Cliente } from './Cliente.js';
 
 export class Avulso extends Cliente {
-    #bloqueado;
-
-    constructor(id = "Avulso", nome = "Cliente Avulso") {
-        // Como é avulso, não tem um ID fixo como CPF/CNPJ no momento da entrada
-        super(id, nome);
-        this.#bloqueado = false;
+    constructor(placa) {
+        // Avulso usa a placa como ID temporário no polimorfismo e nome genérico
+        super(placa, "Cliente Avulso");
+        this.adicionarPlaca(placa);
     }
 
-    get bloqueado() {
-        return this.#bloqueado;
-    }
+    // Regra: até 6 horas, cobra hora-fracionada. Acima de 6h cobra diária. Virou meia-noite é nova diária.
+    calcularTarifa(quantidadeDias, horasPermanencia) {
+        const VALOR_HORA = 10.00;
+        const VALOR_DIARIA = 50.00;
 
-    bloquear() {
-        this.#bloqueado = true;
-    }
+        let valorTotal = 0.0;
 
-    desbloquear() {
-        this.#bloqueado = false;
-    }
+        if (quantidadeDias > 1) {
+            // Se virou "dias" na meia noite, cobra-se diárias equivalentes
+            valorTotal = quantidadeDias * VALOR_DIARIA;
+        } else {
+            // Mesmo dia civil
+            if (horasPermanencia > 6) {
+                valorTotal = VALOR_DIARIA;
+            } else {
+                valorTotal = horasPermanencia * VALOR_HORA;
+            }
+        }
 
-    // O cálculo de horas e virada da meia-noite será feito pelo Controlador do Estacionamento,
-    // mas deixamos o método base preparado para o polimorfismo.
-    calcularTarifa(valorCalculadoPeloSistema) {
-        return valorCalculadoPeloSistema;
+        return valorTotal;
     }
 }
